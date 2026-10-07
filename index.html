@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emberdeep</title>
+<meta name="description" content="Emberdeep: ein Mining-Clicker. Gold schürfen, Zwerge anheuern, immer tiefer graben.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231c1522'/%3E%3Cpolygon points='9,46 15,24 32,12 50,20 56,40 42,56 22,56' fill='%237d7589'/%3E%3Cpolygon points='9,46 15,24 24,30 22,56' fill='%23584f64'/%3E%3Cpolygon points='30,22 44,24 47,38 33,44 22,34' fill='%23ffcf3f'/%3E%3Cpolygon points='30,22 44,24 33,30' fill='%23fff0a8'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#1c1522;--stone:#2c2433;--line:#4d3f58;--gold:#ffcf3f;--lava:#ff7a1a;--cream:#f6ead7;--mute:#b9a9c4;
+  --disp:"Alfa Slab One",Georgia,serif;--font:Rubik,system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;color:var(--cream);font-family:var(--font);line-height:1.4}
+body{min-height:100vh;padding:18px clamp(12px,3vw,32px) 48px;
+  background:radial-gradient(ellipse 90% 35% at 50% 108%,rgba(255,122,26,.4),transparent),var(--bg)}
+.top{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+h1{margin:0;font-family:var(--disp);font-weight:400;font-size:clamp(1.9rem,5vw,2.8rem);color:var(--gold)}
+a{color:var(--gold)}
+.game{max-width:1100px;margin:20px auto 0;display:grid;gap:24px}
+@media(min-width:900px){.game{grid-template-columns:minmax(320px,1fr) 1.2fr;align-items:start}}
+.stage{text-align:center;position:relative}
+.gold{font-family:var(--disp);font-size:clamp(2.4rem,8vw,3.6rem);line-height:1;color:var(--gold)}
+.sub{margin:4px 0 14px;color:var(--mute)}
+#rock{position:relative;width:min(300px,70vw);aspect-ratio:1;border:0;background:none;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent;filter:drop-shadow(0 12px 0 rgba(0,0,0,.35))}
+#rock:focus-visible{filter:drop-shadow(0 0 3px var(--gold)) drop-shadow(0 0 3px var(--gold)) drop-shadow(0 0 12px var(--gold))}
+.rk{position:absolute;inset:0;clip-path:polygon(14% 30%,30% 8%,62% 4%,88% 22%,96% 55%,80% 90%,45% 98%,12% 80%,4% 50%);
+  background:linear-gradient(118deg,transparent 36%,#ffcf3f 37% 43%,transparent 44% 57%,#ffb300 58% 61%,transparent 62%),
+             linear-gradient(60deg,transparent 22%,#ffdc6b 23% 26%,transparent 27%),
+             radial-gradient(circle at 35% 28%,#b3abc2,#716983 55%,#463e51)}
+#rock.pop .rk{animation:squish .14s ease-out}
+@keyframes squish{50%{transform:scale(.94,.9)}}
+.plus{position:absolute;pointer-events:none;font-family:var(--disp);color:var(--cream);text-shadow:0 2px 0 var(--bg);animation:rise .8s ease-out forwards}
+@keyframes rise{to{transform:translateY(-80px);opacity:0}}
+.buffs{min-height:28px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:12px 0 4px}
+.buff{background:var(--lava);color:#1c1522;font-weight:700;font-size:.85rem;border-radius:999px;padding:2px 12px}
+.note{min-height:1.4em;margin:6px 0 0;color:var(--gold);font-weight:500}
+.panel{background:var(--stone);border:2px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:16px;text-align:left}
+.panel h2{margin:0 0 8px;font-family:var(--disp);font-weight:400;font-size:1.15rem}
+.ach{display:flex;flex-wrap:wrap;gap:5px}
+.ach i{width:18px;height:18px;border-radius:5px;background:#3a2f45}
+.ach i.on{background:var(--gold)}
+.panel p{margin:0 0 8px;font-size:.9rem;color:var(--mute)}
+.btn{font:inherit;font-weight:700;color:#1c1522;background:var(--gold);border:0;border-radius:999px;padding:7px 16px;cursor:pointer}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn:focus-visible,.up:focus-visible,.bd:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.ups{display:flex;flex-wrap:wrap;gap:8px;min-height:12px;margin-bottom:14px}
+.up{font:inherit;font-size:.85rem;color:var(--cream);background:var(--stone);border:2px solid var(--line);border-radius:10px;padding:5px 10px;text-align:left;cursor:pointer}
+.up small{display:block;color:var(--gold)}
+.up:disabled,.bd:disabled{opacity:.5;cursor:not-allowed}
+.up:hover:not(:disabled),.bd:hover:not(:disabled){border-color:var(--gold)}
+.shop{display:grid;gap:8px}
+.bd{display:grid;grid-template-columns:1fr auto;gap:0 12px;width:100%;font:inherit;color:inherit;text-align:left;background:var(--stone);
+  border:2px solid var(--line);border-radius:12px;padding:9px 14px;cursor:pointer}
+.bd b{font-weight:700}
+.bd small{color:var(--mute)}
+.bd .r{grid-row:1/3;grid-column:2;text-align:right;align-self:center;color:var(--gold);font-weight:700}
+.bd .r span{display:block;font-family:var(--disp);font-size:1.5rem;color:var(--cream);font-weight:400;line-height:1}
+.nugget{position:fixed;z-index:9;width:58px;height:58px;border:0;padding:0;cursor:pointer;background:radial-gradient(circle at 35% 30%,#fff0a8,var(--gold) 55%,#d98e00);
+  clip-path:polygon(50% 0,92% 30%,80% 88%,22% 96%,6% 36%);animation:bob 1.2s ease-in-out infinite alternate;filter:drop-shadow(0 0 10px var(--gold))}
+@keyframes bob{to{transform:translateY(-10px) rotate(8deg)}}
+.foot{max-width:1100px;margin:26px auto 0;color:var(--mute);font-size:.88rem}
+.foot button{font:inherit;color:var(--mute);background:none;border:1px solid var(--line);border-radius:999px;padding:3px 12px;cursor:pointer}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.top,.game,.foot{position:relative;z-index:1}
+.top>div{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.tag{margin:0;color:var(--mute);font-size:.95rem}
+@media(min-width:900px){.stage{position:sticky;top:18px}}
+.plate{background:linear-gradient(180deg,#372b41,#271f2f);border:2px solid var(--line);border-radius:18px;padding:14px 16px 12px;box-shadow:0 6px 0 rgba(0,0,0,.3)}
+.gold{text-shadow:0 3px 0 rgba(0,0,0,.35),0 0 24px rgba(255,207,63,.35)}
+.plate .sub{margin:6px 0 4px}
+.depth{display:inline-block;margin-top:2px;font-size:.85rem;color:var(--mute);border-top:1px solid var(--line);padding-top:6px}
+.depth b{color:var(--cream);font-weight:700}
+.pit{position:relative;width:fit-content;margin:22px auto 0}
+.pit::before{content:"";position:absolute;left:-22%;right:-22%;bottom:-10%;height:46%;background:radial-gradient(ellipse,rgba(255,122,26,.6),transparent 70%);filter:blur(8px);animation:glow 3s ease-in-out infinite alternate}
+@keyframes glow{to{opacity:.55;transform:scaleX(1.08)}}
+#rock{z-index:1}
+.sh{display:flex;align-items:center;gap:12px;margin:0 0 10px;font-family:var(--disp);font-weight:400;font-size:1.2rem}
+.sh::after{content:"";flex:1;height:2px;background:var(--line)}
+.sh[hidden]{display:none}
+.ups{margin-bottom:18px}
+.bd{grid-template-columns:auto 1fr auto;align-items:center;gap:0 12px;transition:border-color .15s,transform .05s}
+.bd .ic{grid-row:1/3;grid-column:1}.bd b{grid-column:2}.bd small{grid-column:2}.bd .r{grid-column:3}
+.ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-family:var(--disp);font-size:1.3rem;color:#fff3dc;
+  background:linear-gradient(145deg,hsl(var(--h) 65% 52%),hsl(var(--h) 65% 28%));box-shadow:inset 0 -4px 0 rgba(0,0,0,.25);text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.bd:not(:disabled),.up:not(:disabled){border-color:#85622e}
+.bd:not(:disabled){box-shadow:inset 4px 0 0 var(--gold)}
+.bd:active:not(:disabled),.up:active:not(:disabled){transform:translateY(2px)}
+.side{display:grid;gap:14px;margin-top:22px}
+.panel{margin-top:0}
+.ach{gap:6px}
+.ach i{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;font-style:normal;font-size:.95rem;background:#3a2f45;filter:grayscale(1);opacity:.35}
+.ach i.on{background:#4d3a1a;filter:none;opacity:1;box-shadow:0 0 8px rgba(255,207,63,.45)}
+.gold::before{content:"🪙 ";font-size:.7em}
+.ic{font-size:1.6rem}
+.up .em{margin-right:2px}
+.embers{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.embers span{position:absolute;bottom:-12px;width:var(--s);height:var(--s);border-radius:50%;background:var(--lava);box-shadow:0 0 8px 2px rgba(255,122,26,.7);opacity:0;animation:ember var(--d) linear var(--w) infinite}
+@keyframes ember{0%{transform:translate(0,0);opacity:0}10%{opacity:.85}100%{transform:translate(var(--x),-105vh);opacity:0}}
+</style>
+</head>
+<body>
+<header class="top"><div><h1>Emberdeep</h1></div><a href="https://iamera.github.io/">← Alle Spiele</a></header>
+<div class="embers" id="embers" aria-hidden="true"></div>
+
+<main class="game">
+  <section class="stage" id="stage">
+    <div class="plate">
+      <div class="gold" id="gold">0</div>
+      <p class="sub">⚡ <span id="cps">0</span> Gold pro Sekunde</p>
+      <div class="depth">🕳️ Tiefe: <b id="depth">0</b> m</div>
+    </div>
+    <div class="pit">
+      <button id="rock" type="button" aria-label="Felsen anklicken, um Gold zu schürfen"><span class="rk"></span></button>
+    </div>
+    <div class="buffs" id="buffs"></div>
+    <p class="note" id="note"></p>
+  </section>
+
+  <section>
+    <h2 class="sh" id="uph" hidden>✨ Verbesserungen</h2>
+    <div class="ups" id="ups"></div>
+    <h2 class="sh">🏗️ Gebäude</h2>
+    <div class="shop" id="shop"></div>
+
+    <div class="side">
+      <div class="panel">
+        <h2>💎 Neue Mine</h2>
+        <p>Grabe woanders neu an. Jeder Edelstein gibt dauerhaft +2 % auf alles. <span id="gems"></span></p>
+        <button class="btn" id="asc" type="button"></button>
+      </div>
+      <div class="panel">
+        <h2>🏆 Erfolge <span id="achn" style="font-family:var(--font);font-size:.85rem;color:var(--mute)"></span></h2>
+        <div class="ach" id="ach"></div>
+      </div>
+    </div>
+  </section>
+</main>
+<div class="foot">Dein Fortschritt wird im Browser gespeichert. Jeder Erfolg gibt +1 % auf alles. <button id="reset" type="button">Alles löschen</button></div>
+
+<script>
+(function(){
+  var KEY="emberdeep-v1",$=function(id){return document.getElementById(id)};
+  var BD=[["Lehrling",15,.1],["Bergmann",100,1],["Förderband",1100,8],["Lore",12e3,47],["Sprengtrupp",13e4,260],
+    ["Bohrmaschine",14e5,1400],["Schmelzofen",2e7,7800],["Drachenhort",33e7,44e3],["Tiefenportal",51e8,26e4]];
+  var RO=["I","II","III","IV"],CN=["Eisenspitzhacke","Stahlspitzhacke","Mithril-Hacke","Zwergen-Griff","Drachenstahl-Hacke","Meistergriff"];
+  var EM=["⛏️","👷","⚙️","🛒","🧨","🚜","🔥","🐉","🌀"],HUE=[215,32,48,200,12,172,4,280,325],S,UP=[],ACH=[];
+
+  function fmt(n,d){
+    var u=[[1e18,"Trl."],[1e15,"Brd."],[1e12,"Bio."],[1e9,"Mrd."],[1e6,"Mio."]];
+    for(var i=0;i<u.length;i++) if(n>=u[i][0]) return (n/u[i][0]).toLocaleString("de-DE",{maximumFractionDigits:2})+" "+u[i][1];
+    return n.toLocaleString("de-DE",{maximumFractionDigits:d||0});
+  }
+  function fresh(){S={g:0,ever:0,gems:0,own:BD.map(function(){return 0}),up:{},ach:{},buffs:[],t:Date.now()}}
+  function keep(){var k={ever:S.ever,gems:S.gems,ach:S.ach};fresh();S.ever=k.ever;S.gems=k.gems;S.ach=k.ach}
+
+  BD.forEach(function(b,i){[1,10,25,50].forEach(function(th,t){
+    UP.push({id:"b"+i+"_"+t,e:EM[i],name:b[0]+" "+RO[t],desc:b[0]+" leisten das Doppelte",cost:b[1]*[10,50,500,5000][t],req:function(){return S.own[i]>=th}});
+  });});
+  [[100,"x"],[500,"x"],[5e3,"x"],[5e4,"p"],[5e5,"x"],[5e6,"p"]].forEach(function(c,k){
+    UP.push({id:"c"+k,c:c[1],e:c[1]=="x"?"⛏️":"🧤",name:CN[k],desc:c[1]=="x"?"Klicks bringen das Doppelte":"Klicks bringen zusätzlich 1 % deiner Gold/s",cost:c[0],req:function(){return S.ever>=c[0]/5}});
+  });
+  UP.sort(function(a,b){return a.cost-b.cost});
+
+  BD.forEach(function(b,i){[1,10,50].forEach(function(n){ACH.push({id:"a"+i+"_"+n,e:EM[i],name:n+"× "+b[0],ok:function(){return S.own[i]>=n}})})});
+  [1e2,1e3,1e4,1e5,1e6,1e7,1e8,1e9,1e10,1e12,1e15].forEach(function(v){ACH.push({id:"g"+v,e:"🪙",name:fmt(v)+" Gold geschürft",ok:function(){return S.ever>=v}})});
+
+  function mult(i){var m=1;for(var t=0;t<4;t++) if(S.up["b"+i+"_"+t]) m*=2;return m}
+  function gm(){return 1+.01*Object.keys(S.ach).length+.02*S.gems}
+  function bm(k){var m=1;S.buffs.forEach(function(b){if(b.k==k)m*=b.m});return m}
+  function cps0(){var s=0;BD.forEach(function(b,i){s+=S.own[i]*b[2]*mult(i)});return s*gm()}
+  function cps(){return cps0()*bm("cps")}
+  function click(){var cm=1,pc=0;UP.forEach(function(u){if(u.c&&S.up[u.id]){if(u.c=="x")cm*=2;else pc+=.01}});return (cm*gm()+cps0()*pc)*bm("click")}
+  function cost(i){return Math.ceil(BD[i][1]*Math.pow(1.15,S.own[i]))}
+  function avail(){return Math.max(0,Math.floor(Math.cbrt(S.ever/1e8))-S.gems)}
+  function add(n){S.g+=n;S.ever+=n}
+
+  function load(){
+    fresh();
+    try{
+      var d=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem("tiefenrausch-v1")||"null");
+      if(!d) return;
+      S.g=+d.g||0;S.ever=+d.ever||0;S.gems=+d.gems||0;S.up=d.up||{};S.ach=d.ach||{};
+      BD.forEach(function(b,i){S.own[i]=+(d.own&&d.own[i])||0});
+      var gain=cps0()*Math.min((Date.now()-(+d.t||Date.now()))/1000,3600);
+      if(gain>=1){add(gain);note("Während du weg warst, wurden "+fmt(Math.floor(gain))+" Gold geschürft.")}
+    }catch(e){}
+  }
+  function save(){S.t=Date.now();try{localStorage.setItem(KEY,JSON.stringify({g:S.g,ever:S.ever,gems:S.gems,own:S.own,up:S.up,ach:S.ach,t:S.t}))}catch(e){}}
+  var nt;function note(t){$("note").textContent=t;clearTimeout(nt);nt=setTimeout(function(){$("note").textContent=""},5000)}
+
+  var shop=$("shop"),bds=[];
+  BD.forEach(function(b,i){
+    var el=document.createElement("button");el.type="button";el.className="bd";
+    el.innerHTML='<span class="ic" style="--h:'+HUE[i]+'">'+EM[i]+'</span><b>'+b[0]+'</b><small class="e"></small><div class="r"><span class="n"></span><i class="c"></i> Gold</div>';
+    el.addEventListener("click",function(){var c=cost(i);if(S.g<c)return;S.g-=c;S.own[i]++;render(true);save()});
+    shop.appendChild(el);bds.push(el);
+  });
+  var achEl=$("ach");ACH.forEach(function(a){var e=document.createElement("i");e.title=a.name;e.textContent=a.e;achEl.appendChild(e)});
+
+  var upEl=$("ups"),upKey="";
+  function renderUps(force){
+    var vis=UP.filter(function(u){return !S.up[u.id]&&u.req()}).slice(0,12),key=vis.map(function(u){return u.id}).join();$("uph").hidden=!vis.length;
+    if(key!==upKey||force){
+      upKey=key;upEl.innerHTML="";
+      vis.forEach(function(u){
+        var el=document.createElement("button");el.type="button";el.className="up";el.title=u.desc;el.dataset.c=u.cost;
+        el.innerHTML=u.e+' '+u.name+'<small>'+fmt(u.cost)+' Gold</small><span style="display:block;color:var(--mute)">'+u.desc+'</span>';
+        el.addEventListener("click",function(){if(S.g<u.cost)return;S.g-=u.cost;S.up[u.id]=1;render(true);save()});
+        upEl.appendChild(el);
+      });
+    }
+    Array.prototype.forEach.call(upEl.children,function(el){el.disabled=S.g<+el.dataset.c});
+  }
+
+  function render(force){
+    $("gold").textContent=fmt(Math.floor(S.g));
+    $("cps").textContent=fmt(cps(),1);
+    BD.forEach(function(b,i){
+      var el=bds[i],c=cost(i);
+      el.querySelector(".c").textContent=fmt(c);el.querySelector(".n").textContent=S.own[i];
+      el.querySelector(".e").textContent=fmt(b[2]*mult(i)*gm(),1)+" Gold/s je";
+      el.disabled=S.g<c;
+    });
+    renderUps(force);
+    var now=Date.now();S.buffs=S.buffs.filter(function(b){return b.end>now});
+    $("buffs").innerHTML=S.buffs.map(function(b){return '<span class="buff">'+b.n+" ×"+b.m+" · "+Math.ceil((b.end-now)/1000)+" s</span>"}).join("");
+    var n=0;ACH.forEach(function(a,i){var on=!!S.ach[a.id];if(on)n++;achEl.children[i].className=on?"on":""});
+    $("achn").textContent=n+" / "+ACH.length;
+    $("depth").textContent=Math.floor(Math.pow(Math.log10(S.ever+1),2)*12).toLocaleString("de-DE");
+    var av=avail();$("gems").textContent="Edelsteine: "+S.gems+".";
+    $("asc").disabled=av<1;$("asc").textContent=av<1?"Erst ab 100 Mio. Gold insgesamt":"💎 Neue Mine: +"+av+" Edelstein"+(av>1?"e":"");
+  }
+
+  var rock=$("rock"),stage=$("stage");
+  rock.addEventListener("click",function(e){
+    var n=click();add(n);
+    rock.classList.remove("pop");void rock.offsetWidth;rock.classList.add("pop");
+    var r=stage.getBoundingClientRect(),p=document.createElement("span");
+    p.className="plus";p.textContent="+"+fmt(n,1);
+    p.style.left=((e.clientX?e.clientX-r.left:r.width/2)-12)+"px";p.style.top=((e.clientY?e.clientY-r.top:r.height/2)-24)+"px";
+    stage.appendChild(p);setTimeout(function(){p.remove()},800);
+    render();
+  });
+
+  function buff(n,k,m,s){S.buffs.push({n:n,k:k,m:m,end:Date.now()+s*1000})}
+  function spawn(){
+    var el=document.createElement("button");el.type="button";el.className="nugget";el.setAttribute("aria-label","Goldader anklicken");
+    el.style.left=(8+Math.random()*80)+"%";el.style.top=(14+Math.random()*68)+"%";
+    el.addEventListener("click",function(){
+      var r=Math.random();
+      if(r<.45){buff("🔥 Goldrausch","cps",7,30);note("🔥 Goldrausch: 30 Sekunden lang siebenfache Produktion!")}
+      else if(r<.8){var g=Math.min(S.g*.15,cps0()*900)+13;add(g);note("🍀 Glückstreffer: +"+fmt(Math.floor(g))+" Gold!")}
+      else{buff("👆 Klick-Rausch","click",777,15);note("👆 Klick-Rausch: 15 Sekunden lang 777-fache Klicks!")}
+      el.remove();render();
+    });
+    document.body.appendChild(el);setTimeout(function(){el.remove()},13000);
+    schedule(45e3);
+  }
+  function schedule(min){setTimeout(spawn,min+Math.random()*75e3)}
+
+  var last=performance.now();
+  setInterval(function(){
+    var now=performance.now(),dt=(now-last)/1000;last=now;
+    var r=cps();if(r>0)add(r*dt);
+    ACH.forEach(function(a){if(!S.ach[a.id]&&a.ok()){S.ach[a.id]=1;note("🏆 Erfolg: "+a.name+" (+1 %)")}});
+    render();
+  },100);
+  setInterval(save,5000);window.addEventListener("pagehide",save);
+
+  $("asc").addEventListener("click",function(){
+    var av=avail();
+    if(av<1||!confirm("Neue Mine beginnen? Gold, Gebäude und Verbesserungen werden zurückgesetzt. Du bekommst "+av+" Edelstein(e).")) return;
+    var g=S.gems+av;keep();S.gems=g;upKey="";render(true);save();note("💎 Neue Mine! Alles läuft jetzt schneller.");
+  });
+  $("reset").addEventListener("click",function(){
+    if(!confirm("Wirklich ALLES löschen, auch Erfolge und Edelsteine?")) return;
+    fresh();upKey="";render(true);save();
+  });
+
+  var em=$("embers");
+  for(var k=0;k<16;k++){var sp=document.createElement("span");
+    sp.style.cssText="left:"+(Math.random()*100)+"%;--s:"+(2+Math.random()*4)+"px;--d:"+(9+Math.random()*10)+"s;--w:-"+(Math.random()*18)+"s;--x:"+((Math.random()-.5)*160)+"px";
+    em.appendChild(sp);}
+  load();render(true);schedule(15e3);
+})();
+</script>
+</body>
+</html>

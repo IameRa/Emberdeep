@@ -100,10 +100,13 @@ a{color:var(--gold)}
 .embers{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
 .embers span{position:absolute;bottom:-12px;width:var(--s);height:var(--s);border-radius:50%;background:var(--lava);box-shadow:0 0 8px 2px rgba(255,122,26,.7);opacity:0;animation:ember var(--d) linear var(--w) infinite}
 @keyframes ember{0%{transform:translate(0,0);opacity:0}10%{opacity:.85}100%{transform:translate(var(--x),-105vh);opacity:0}}
+.top>a{font-weight:700;font-size:.95rem;text-decoration:none;color:var(--cream);background:var(--stone);border:2px solid var(--line);border-radius:999px;padding:6px 16px}
+.top>a:hover{border-color:var(--gold);color:var(--gold)}
+.top>a:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 </style>
 </head>
 <body>
-<header class="top"><div><h1>Emberdeep</h1></div><a href="https://iamera.github.io/">← Alle Spiele</a></header>
+<header class="top"><div><h1>Emberdeep</h1></div><a href="https://iamera.github.io/GameHub/">← Alle Spiele</a></header>
 <div class="embers" id="embers" aria-hidden="true"></div>
 
 <main class="game">
